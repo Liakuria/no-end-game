@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>冒険者タウン＆ダンジョン放置</title>
+  <title>冒険者タウン＆ダンジョン放置 - フル拡張版</title>
   <style>
     :root {
       --bg: #0f1016;
@@ -17,6 +17,8 @@
       --wood: #a0522d;
       --stone: #708090;
       --soul: #9932cc;
+      --hp-green: #2ecc71;
+      --xp-blue: #3498db;
     }
 
     body {
@@ -32,28 +34,47 @@
     }
 
     .container {
-      max-width: 600px;
+      max-width: 650px;
       width: 100%;
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 15px;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+      box-sizing: border-box;
     }
 
-    /* リソース表示バー */
-    .resource-bar {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 8px;
-      background: rgba(0,0,0,0.3);
+    /* プレイヤー＆リソースバー */
+    .status-bar {
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
       padding: 10px;
       border-radius: 8px;
-      margin-bottom: 12px;
-      font-size: 0.9rem;
-      border: 1px solid var(--border);
+      margin-bottom: 10px;
+      font-size: 0.85rem;
     }
-    .res-item { display: flex; justify-content: space-between; }
+    .bar-bg {
+      background: #333;
+      height: 12px;
+      border-radius: 6px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .hp-fill { background: var(--hp-green); height: 100%; width: 100%; transition: width 0.1s; }
+    .xp-fill { background: var(--xp-blue); height: 100%; width: 0%; transition: width 0.1s; }
+
+    .resource-bar {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      background: rgba(0,0,0,0.3);
+      padding: 8px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      font-size: 0.8rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
     .res-gold { color: var(--gold); }
     .res-wood { color: var(--wood); }
     .res-stone { color: var(--stone); }
@@ -62,8 +83,8 @@
     /* タブ切り替え */
     .tabs {
       display: flex;
-      gap: 5px;
-      margin-bottom: 15px;
+      gap: 4px;
+      margin-bottom: 12px;
       border-bottom: 2px solid var(--border);
       padding-bottom: 5px;
       overflow-x: auto;
@@ -72,12 +93,13 @@
       background: transparent;
       border: none;
       color: var(--text-sub);
-      padding: 8px 12px;
+      padding: 6px 10px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 6px;
       white-space: nowrap;
       transition: 0.2s;
+      font-size: 0.85rem;
     }
     .tab-btn.active {
       background: var(--accent);
@@ -112,7 +134,6 @@
     /* 街グリッド */
     .town-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
       gap: 8px;
       margin-bottom: 15px;
     }
@@ -122,7 +143,7 @@
       border-radius: 8px;
       padding: 8px;
       text-align: center;
-      min-height: 100px;
+      min-height: 90px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -133,47 +154,52 @@
       background: rgba(255, 107, 107, 0.05);
     }
 
-    /* 戦闘タブ */
-    .battle-screen { text-align: center; padding: 15px 0; }
+    /* 戦闘画面 */
+    .battle-screen { text-align: center; padding: 10px 0; }
     .enemy-box {
       background: rgba(0,0,0,0.4);
       border: 1px solid var(--border);
       border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 15px;
+      padding: 15px;
+      margin-bottom: 10px;
       cursor: pointer;
       user-select: none;
       transition: transform 0.05s;
     }
     .enemy-box:active { transform: scale(0.98); }
-    .hp-bar-bg {
-      background: #333;
-      height: 16px;
-      border-radius: 8px;
-      overflow: hidden;
-      margin: 10px 0;
-    }
-    .hp-bar-fill {
-      background: #ff4757;
-      height: 100%;
-      width: 100%;
-      transition: width 0.1s linear;
-    }
 
-    /* リスト要素 */
     .list-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
+      padding: 8px 10px;
       background: rgba(0,0,0,0.2);
       border-radius: 6px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-size: 0.85rem;
     }
 
+    /* モーダル */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .modal-content {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 400px;
+      width: 90%;
+    }
+
     .system-footer {
-      margin-top: 20px;
+      margin-top: 15px;
       border-top: 1px solid var(--border);
       padding-top: 10px;
       display: flex;
@@ -184,136 +210,218 @@
 <body>
 
 <div class="container">
+  <!-- プレイヤー基本ステータス -->
+  <div class="status-bar">
+    <div style="display:flex; justify-content:space-between; font-weight:bold;">
+      <span>Lv.<span id="hero-lv">1</span> 見習い冒険者</span>
+      <span>ステータスPt: <span id="hero-stat-pt" style="color:var(--gold);">0</span></span>
+    </div>
+    <div style="margin-top:4px;">
+      HP: <span id="hero-hp">50</span> / <span id="hero-max-hp">50</span>
+      <div class="bar-bg"><div id="hero-hp-fill" class="hp-fill"></div></div>
+    </div>
+    <div style="margin-top:4px;">
+      XP: <span id="hero-xp">0</span> / <span id="hero-next-xp">10</span>
+      <div class="bar-bg"><div id="hero-xp-fill" class="xp-fill"></div></div>
+    </div>
+  </div>
+
   <!-- 資源バー -->
   <div class="resource-bar">
-    <div class="res-item"><span>ゴールド:</span> <span id="res-gold" class="res-gold">0</span></div>
-    <div class="res-item"><span>木材:</span> <span id="res-wood" class="res-wood">0</span></div>
-    <div class="res-item"><span>鉱石:</span> <span id="res-stone" class="res-stone">0</span></div>
-    <div class="res-item"><span>ソウル:</span> <span id="res-soul" class="res-soul">0</span></div>
+    <div>G: <span id="res-gold" class="res-gold">0</span></div>
+    <div>木: <span id="res-wood" class="res-wood">0</span></div>
+    <div>鉱: <span id="res-stone" class="res-stone">0</span></div>
+    <div>魂: <span id="res-soul" class="res-soul">0</span></div>
   </div>
 
   <!-- タブボタン -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('town')">🏢 街</button>
+    <button class="tab-btn active" onclick="switchTab('hero')">👤 ステータス</button>
+    <button class="tab-btn" onclick="switchTab('town')">🏢 街</button>
     <button class="tab-btn" onclick="switchTab('battle')">⚔️ 戦闘</button>
     <button class="tab-btn" onclick="switchTab('research')">🔬 研究</button>
-    <button class="tab-btn" onclick="switchTab('gacha')">🎰 ガチャ・編成</button>
+    <button class="tab-btn" onclick="switchTab('auto')">🤖 自動化</button>
+    <button class="tab-btn" onclick="switchTab('achieve')">🏆 実績</button>
+    <button class="tab-btn" onclick="switchTab('gacha')">🎰 ガチャ</button>
     <button class="tab-btn" onclick="switchTab('reincarnation')">🔄 転生</button>
   </div>
 
-  <!-- 1. 街タブ -->
-  <div id="tab-town" class="tab-content active">
+  <!-- 1. ステータスタブ -->
+  <div id="tab-hero" class="tab-content active">
+    <div class="card-box">
+      <h3>ステータス割り振り</h3>
+      <div class="list-item">
+        <span>攻撃力: <b id="stat-atk">5</b></span>
+        <button onclick="addStat('atk')">＋ 強化 (1Pt)</button>
+      </div>
+      <div class="list-item">
+        <span>防御力: <b id="stat-def">0</b></span>
+        <button onclick="addStat('def')">＋ 強化 (1Pt)</button>
+      </div>
+      <div class="list-item">
+        <span>最大HP: <b id="stat-maxhp">50</b></span>
+        <button onclick="addStat('hp')">＋ 強化 (1Pt)</button>
+      </div>
+      <div style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+        <span>自動割り振りモード:</span>
+        <select id="auto-stat-mode" onchange="game.autoStatMode=this.value; saveGameData();">
+          <option value="none">手動</option>
+          <option value="atk">攻撃優先</option>
+          <option value="def">防御優先</option>
+          <option value="hp">HP優先</option>
+          <option value="balance">バランス</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. 街タブ -->
+  <div id="tab-town" class="tab-content">
     <div class="card-box" style="text-align: center;">
       <h3>ギルド本部 (メインタップ)</h3>
-      <p style="font-size: 0.85rem; color: var(--text-sub);">クリック効果: +1 ゴールド</p>
-      <button onclick="tapGuild()" style="padding: 10px 20px;">ゴールド獲得！</button>
+      <button onclick="tapGuild()">ゴールド獲得！ (+1G)</button>
     </div>
 
-    <h3>タウン建築 (敷地: <span id="town-size">3</span>x<span id="town-size-2">3</span>)</h3>
+    <h3>タウン (敷地: <span id="town-size">3</span>x<span id="town-size-2">3</span>)</h3>
     <div class="town-grid" id="town-grid"></div>
-    
-    <div id="land-expand-box" style="text-align: center; margin-bottom: 15px;">
-      <button onclick="expandLand()">土地を拡張する (コスト: <span id="land-cost">500</span>G)</button>
+    <div style="text-align: center; margin-bottom: 15px;">
+      <button onclick="expandLand()">土地を拡張 (コスト: <span id="land-cost">500</span>G)</button>
     </div>
   </div>
 
-  <!-- 2. 戦闘タブ -->
+  <!-- 3. 戦闘タブ -->
   <div id="tab-battle" class="tab-content">
     <div class="battle-screen">
-      <div id="stage-info" style="font-weight: bold; margin-bottom: 5px;">ステージ 1</div>
+      <div id="stage-info" style="font-weight: bold;">ステージ 1</div>
       <div class="enemy-box" onclick="attackEnemy()">
         <h3 id="enemy-name" style="margin:0;">スライム</h3>
-        <div class="hp-bar-bg">
-          <div id="enemy-hp-fill" class="hp-bar-fill"></div>
+        <div class="bar-bg" style="height:14px; margin:8px 0;">
+          <div id="enemy-hp-fill" class="hp-fill" style="background:#e74c3c;"></div>
         </div>
-        <div>HP: <span id="enemy-hp">10</span> / <span id="enemy-max-hp">10</span></div>
-        <p style="font-size: 0.8rem; color: var(--text-sub); margin: 5px 0 0 0;">(タップで攻撃！)</p>
+        <div>HP: <span id="enemy-hp">10</span> / <span id="enemy-max-hp">10</span> (攻: <span id="enemy-atk">2</span>)</div>
+        <p style="font-size:0.75rem; color:var(--text-sub); margin:4px 0 0 0;">(タップで手動攻撃！)</p>
       </div>
-      <div class="card-box" style="text-align: left;">
-        <div><b>パーティ攻撃力:</b> <span id="battle-atk">1</span></div>
-        <div><b>撃破時時短量:</b> <span id="stat-shikantime">1</span> 秒 / 1体</div>
+
+      <div class="card-box" style="text-align:left;">
+        <h4>オートスキル購入</h4>
+        <div id="skill-shop-list"></div>
       </div>
     </div>
   </div>
 
-  <!-- 3. 研究タブ -->
+  <!-- 4. 研究タブ -->
   <div id="tab-research" class="tab-content">
-    <h3>テックツリー研究</h3>
-    <p style="font-size: 0.85rem; color: var(--text-sub);">研究スロット: <span id="research-slots">1</span> / <span id="research-max-slots">1</span> 稼働中</p>
+    <h3>テックツリー研究 (周回可能)</h3>
+    <p style="font-size: 0.8rem; color: var(--text-sub);">同時進行枠: <span id="research-slots">1</span> / <span id="research-max-slots">1</span></p>
     <div id="research-list"></div>
   </div>
 
-  <!-- 4. ガチャ・編成タブ -->
+  <!-- 5. 自動化タブ -->
+  <div id="tab-auto" class="tab-content">
+    <h3>全自動化アップグレード</h3>
+    <div id="auto-upgrade-list"></div>
+  </div>
+
+  <!-- 6. 実績タブ -->
+  <div id="tab-achieve" class="tab-content">
+    <h3>実績一覧</h3>
+    <div id="achievement-list"></div>
+  </div>
+
+  <!-- 7. ガチャタブ -->
   <div id="tab-gacha" class="tab-content">
     <div class="card-box" style="text-align: center;">
-      <h3>冒険者スカウト (ガチャ)</h3>
-      <p style="font-size: 0.85rem;">コスト: 100 ソウル</p>
-      <button onclick="pullGacha()">仲間をスカウトする</button>
+      <h3>冒険者スカウト</h3>
+      <p style="font-size: 0.85rem;">コスト: <b>50 ソウル</b></p>
+      <button onclick="pullGacha()">ガチャを引く</button>
     </div>
-    <h3>所有キャラクター一覧</h3>
+    <h3>所有仲間一覧</h3>
     <div id="owned-char-list"></div>
   </div>
 
-  <!-- 5. 転生タブ -->
+  <!-- 8. 転生タブ -->
   <div id="tab-reincarnation" class="tab-content">
     <div class="card-box" style="text-align: center;">
       <h3>転生（プレステージ）</h3>
-      <p style="font-size: 0.85rem; color: var(--text-sub);">進行度をリセットして転生Ptを獲得します。</p>
-      <p>獲得予定Pt: <span id="pending-reincarnate-pt" style="color:var(--gold); font-weight:bold;">0</span> Pt</p>
-      <button onclick="reincarnate()" style="background: #9932cc;">転生を実行する</button>
+      <p style="font-size: 0.8rem; color: var(--text-sub);">進行度をリセットし転生Ptを獲得。</p>
+      <p>獲得予定: <b id="pending-reincarnate-pt" style="color:var(--gold);">0</b> Pt</p>
+      <button onclick="reincarnate()" style="background:#9932cc;">転生を実行</button>
     </div>
-    <h3>転生アップグレード (永続強化)</h3>
+    <h3>転生永続強化</h3>
     <div id="reincarnate-upgrades"></div>
   </div>
 
-  <!-- フッター -->
+  <!-- システムフッター -->
   <div class="system-footer">
-    <button onclick="saveGame()" style="background:#2ecc71;">セーブ</button>
+    <button onclick="saveGameData(true)" style="background:#2ecc71;">セーブ</button>
     <button onclick="resetGame()" style="background:#e74c3c;">リセット</button>
+  </div>
+</div>
+
+<!-- 選択式建築モーダル -->
+<div id="build-modal" class="modal">
+  <div class="modal-content">
+    <h3>建物を選択して建設</h3>
+    <div id="build-options-list"></div>
+    <button onclick="closeBuildModal()" style="margin-top:15px; width:100%; background:#777;">キャンセル</button>
   </div>
 </div>
 
 <script>
   let game = {
-    gold: 0,
-    wood: 0,
-    stone: 0,
-    soul: 0,
+    gold: 0, wood: 0, stone: 0, soul: 0,
+    heroLv: 1, heroXp: 0, statPt: 0,
+    baseAtk: 5, baseDef: 0, baseMaxHp: 50, curHp: 50,
+    autoStatMode: 'none',
     townLevel: 3,
     buildings: {},
-    enemyMaxHp: 10,
-    enemyHp: 10,
-    stage: 1,
-    researches: {},
+    enemyMaxHp: 10, enemyHp: 10, enemyAtk: 2, stage: 1,
+    skills: { autoAttack: 0, fireball: 0 },
+    researches: {}, // { id: level }
     activeResearches: [],
-    characters: [
-      { id: 'hero', name: '見習い剣士 (メイン)', atk: 1, owned: true }
-    ],
+    researchProgress: {}, // { id: seconds }
+    autoBuild: false, autoResearch: false,
+    achievements: {},
+    characters: [],
     reincarnatePoints: 0,
-    upgrades: {
-      shikaiSpeed: 0,
-      offlineMaxTime: 0
-    },
+    upgrades: { shikaiSpeed: 0, offlineMaxTime: 0 },
     lastSaveTime: Date.now()
   };
 
+  let targetBuildingSlot = null;
+
   const BUILDING_TYPES = {
-    gold_mine: { name: '金鉱', baseCost: {gold: 50}, goldGen: 2, unit: 'ゴールド/秒' },
-    lumber_mill: { name: '伐採所', baseCost: {gold: 100}, woodGen: 1, unit: '木材/秒' },
-    quarry: { name: '採掘所', baseCost: {gold: 200, wood: 50}, stoneGen: 1, unit: '鉱石/秒' },
-    lab: { name: '研究所', baseCost: {gold: 500, stone: 100}, labEffect: 1, unit: '研究枠追加' }
+    gold_mine: { name: '金鉱', baseCost: {gold: 50}, goldGen: 2, unit: 'G/秒' },
+    lumber_mill: { name: '伐採所', baseCost: {gold: 100}, woodGen: 1, unit: '木/秒' },
+    quarry: { name: '採掘所', baseCost: {gold: 200, wood: 50}, stoneGen: 1, unit: '鉱/秒' },
+    lab: { name: '研究所', baseCost: {gold: 500, stone: 100}, unit: '研究枠追加' }
   };
 
+  const SKILL_DATA = [
+    { id: 'autoAttack', name: 'オートアタック', baseCost: 100, desc: '自動で手動と同等の攻撃（1秒毎）' },
+    { id: 'fireball', name: 'ファイアボール', baseCost: 500, desc: '定期的に大ダメージ魔法（2秒毎）' }
+  ];
+
   const RESEARCH_DATA = [
-    { id: 'res_atk1', name: '剣術強化 I', time: 30, cost: {gold: 200}, desc: '攻撃力 +2' },
-    { id: 'res_slot1', name: '研究室拡張', time: 60, cost: {gold: 500, wood: 100}, desc: '同時研究枠 +1' },
-    { id: 'res_atk2', name: '剣術強化 II', time: 120, cost: {gold: 2000, stone: 300}, desc: '攻撃力 +5' }
+    { id: 'res_atk', name: '鍛錬術', baseTime: 20, baseCost: {gold: 100}, effectText: '攻撃力 +3' },
+    { id: 'res_hp', name: '体力増強', baseTime: 25, baseCost: {gold: 150}, effectText: '最大HP +20' },
+    { id: 'res_slot', name: '研究拡張', baseTime: 60, baseCost: {gold: 1000, wood: 200}, effectText: '研究枠 +1', unlockReq: 'ach_stage5' }
+  ];
+
+  const AUTO_UPGRADES = [
+    { id: 'autoBuild', name: '全自動建築機', cost: {gold: 5000, stone: 1000}, desc: '買える最も安い建物を自動LvUP' },
+    { id: 'autoResearch', name: '自動研究システム', cost: {gold: 10000, stone: 2000}, desc: '枠が空いている場合、自動で研究開始' }
+  ];
+
+  const ACHIEVEMENTS_DATA = [
+    { id: 'ach_kill10', name: '初陣', desc: '敵を10体撃破する', check: () => game.stage > 10, reward: '研究「研究拡張」解放' },
+    { id: 'ach_gold1k', name: '資産家', desc: '所持金1000G突破', check: () => game.gold >= 1000, reward: 'ソウル +50' }
   ];
 
   const GACHA_POOL = [
     { name: '見習い魔導士', atk: 3 },
-    { name: 'エルフの弓使い', atk: 5 },
-    { name: '重騎士', atk: 8 }
+    { name: 'エルフの弓使い', atk: 6 },
+    { name: '重騎士', atk: 10 }
   ];
 
   const REINCARNATE_UPGRADES = [
@@ -322,8 +430,9 @@
   ];
 
   function init() {
-    loadGame();
+    loadGameData();
     calculateOfflineProgress();
+    document.getElementById('auto-stat-mode').value = game.autoStatMode || 'none';
     renderAll();
   }
 
@@ -334,70 +443,60 @@
     event.currentTarget.classList.add('active');
   }
 
-  function tapGuild() {
-    game.gold += 1;
-    updateResourcesUI();
+  function getHeroAtk() {
+    let bonus = 0;
+    game.characters.forEach(c => bonus += c.atk);
+    let resLv = game.researches['res_atk'] || 0;
+    return game.baseAtk + bonus + (resLv * 3);
   }
 
-  function expandLand() {
-    let cost = game.townLevel * 300;
-    if (game.gold >= cost && game.townLevel < 5) {
-      game.gold -= cost;
-      game.townLevel++;
-      renderTown();
-      updateResourcesUI();
+  function getHeroMaxHp() {
+    let resLv = game.researches['res_hp'] || 0;
+    return game.baseMaxHp + (resLv * 20);
+  }
+
+  function addStat(type) {
+    if (game.statPt <= 0) return;
+    game.statPt--;
+    if (type === 'atk') game.baseAtk += 2;
+    if (type === 'def') game.baseDef += 1;
+    if (type === 'hp') game.baseMaxHp += 10;
+    renderHeroStatus();
+  }
+
+  function processAutoStat() {
+    if (game.statPt <= 0 || game.autoStatMode === 'none') return;
+    while (game.statPt > 0) {
+      if (game.autoStatMode === 'atk') addStat('atk');
+      else if (game.autoStatMode === 'def') addStat('def');
+      else if (game.autoStatMode === 'hp') addStat('hp');
+      else if (game.autoStatMode === 'balance') {
+        let min = Math.min(game.baseAtk, game.baseDef * 2, game.baseMaxHp / 5);
+        if (min === game.baseAtk) addStat('atk');
+        else if (min === game.baseDef * 2) addStat('def');
+        else addStat('hp');
+      }
     }
   }
 
-  function getBuildingCost(typeKey, level) {
-    let baseCost = BUILDING_TYPES[typeKey].baseCost;
-    let multiplier = Math.pow(1.5, level - 1);
-    let cost = {};
-    if (baseCost.gold) cost.gold = Math.floor(baseCost.gold * multiplier);
-    if (baseCost.wood) cost.wood = Math.floor(baseCost.wood * multiplier);
-    if (baseCost.stone) cost.stone = Math.floor(baseCost.stone * multiplier);
-    return cost;
-  }
-
-  function formatCostText(cost) {
-    let parts = [];
-    if (cost.gold) parts.push(`${cost.gold}G`);
-    if (cost.wood) parts.push(`${cost.wood}木`);
-    if (cost.stone) parts.push(`${cost.stone}鉱`);
-    return parts.join(' ');
-  }
-
-  function upgradeBuilding(slotIndex) {
-    let b = game.buildings[slotIndex];
-    if (!b) return;
-    let nextCost = getBuildingCost(b.type, b.level + 1);
-
-    if ((!nextCost.gold || game.gold >= nextCost.gold) &&
-        (!nextCost.wood || game.wood >= nextCost.wood) &&
-        (!nextCost.stone || game.stone >= nextCost.stone)) {
-      if (nextCost.gold) game.gold -= nextCost.gold;
-      if (nextCost.wood) game.wood -= nextCost.wood;
-      if (nextCost.stone) game.stone -= nextCost.stone;
-
-      b.level++;
-      renderTown();
-      updateResourcesUI();
-    } else {
-      alert('資源が足りません！');
+  function gainXp(amount) {
+    game.heroXp += amount;
+    let nextXp = game.heroLv * 10;
+    while (game.heroXp >= nextXp) {
+      game.heroXp -= nextXp;
+      game.heroLv++;
+      game.statPt += 3;
+      nextXp = game.heroLv * 10;
     }
+    processAutoStat();
+    renderHeroStatus();
   }
 
-  function getPartyAtk() {
-    let base = 0;
-    game.characters.forEach(c => base += c.atk);
-    if (game.researches['res_atk1'] === true) base += 2;
-    if (game.researches['res_atk2'] === true) base += 5;
-    return base;
-  }
+  function tapGuild() { game.gold += 1; updateResourcesUI(); }
 
   function attackEnemy() {
-    let damage = getPartyAtk();
-    game.enemyHp -= damage;
+    let dmg = Math.max(1, getHeroAtk());
+    game.enemyHp -= dmg;
     if (game.enemyHp <= 0) defeatEnemy();
     updateBattleUI();
   }
@@ -405,86 +504,224 @@
   function defeatEnemy() {
     game.gold += game.stage * 5;
     game.soul += 1;
+    gainXp(game.stage * 2);
+
     let shrinkSeconds = 1 + (game.upgrades.shikaiSpeed || 0);
     advanceResearch(shrinkSeconds);
 
     game.stage++;
     game.enemyMaxHp = Math.floor(10 * Math.pow(1.2, game.stage - 1));
     game.enemyHp = game.enemyMaxHp;
+    game.enemyAtk = Math.floor(1 + game.stage * 0.8);
+    checkAchievements();
+  }
+
+  function enemyAttack() {
+    let dmg = Math.max(0, game.enemyAtk - game.baseDef);
+    game.curHp -= dmg;
+    if (game.curHp <= 0) {
+      // 敗北：HP全快でステージ1つ戻る
+      game.curHp = getHeroMaxHp();
+      game.stage = Math.max(1, game.stage - 1);
+      game.enemyMaxHp = Math.floor(10 * Math.pow(1.2, game.stage - 1));
+      game.enemyHp = game.enemyMaxHp;
+      game.enemyAtk = Math.floor(1 + game.stage * 0.8);
+    }
+    renderHeroStatus();
+  }
+
+  function getBuildingCost(typeKey, level) {
+    let baseCost = BUILDING_TYPES[typeKey].baseCost;
+    let mult = Math.pow(1.5, level - 1);
+    let cost = {};
+    if (baseCost.gold) cost.gold = Math.floor(baseCost.gold * mult);
+    if (baseCost.wood) cost.wood = Math.floor(baseCost.wood * mult);
+    if (baseCost.stone) cost.stone = Math.floor(baseCost.stone * mult);
+    return cost;
+  }
+
+  function formatCostText(cost) {
+    let p = [];
+    if (cost.gold) p.push(`${cost.gold}G`);
+    if (cost.wood) p.push(`${cost.wood}木`);
+    if (cost.stone) p.push(`${cost.stone}鉱`);
+    return p.join(' ');
+  }
+
+  function openBuildModal(slotIndex) {
+    targetBuildingSlot = slotIndex;
+    let container = document.getElementById('build-options-list');
+    container.innerHTML = '';
+    for (let key in BUILDING_TYPES) {
+      let b = BUILDING_TYPES[key];
+      let cost = getBuildingCost(key, 1);
+      container.innerHTML += `
+        <div class="list-item">
+          <div><b>${b.name}</b> (${formatCostText(cost)})<br><small>${b.unit}</small></div>
+          <button onclick="confirmBuild('${key}')">建設</button>
+        </div>
+      `;
+    }
+    document.getElementById('build-modal').style.display = 'flex';
+  }
+
+  function closeBuildModal() { document.getElementById('build-modal').style.display = 'none'; }
+
+  function confirmBuild(typeKey) {
+    let cost = getBuildingCost(typeKey, 1);
+    if (canAfford(cost)) {
+      payCost(cost);
+      game.buildings[targetBuildingSlot] = { type: typeKey, level: 1 };
+      closeBuildModal();
+      renderTown();
+      updateResourcesUI();
+    } else { alert('資源が足りません'); }
+  }
+
+  function upgradeBuilding(slotIndex) {
+    let b = game.buildings[slotIndex];
+    if (!b) return;
+    let cost = getBuildingCost(b.type, b.level + 1);
+    if (canAfford(cost)) {
+      payCost(cost);
+      b.level++;
+      renderTown();
+      updateResourcesUI();
+    } else { alert('資源が足りません'); }
+  }
+
+  function expandLand() {
+    let cost = { gold: game.townLevel * 300 };
+    if (canAfford(cost) && game.townLevel < 5) {
+      payCost(cost);
+      game.townLevel++;
+      renderTown();
+      updateResourcesUI();
+    }
+  }
+
+  function getResearchCost(resId) {
+    let res = RESEARCH_DATA.find(r => r.id === resId);
+    let curLv = game.researches[resId] || 0;
+    let mult = Math.pow(1.8, curLv);
+    let cost = {};
+    if (res.baseCost.gold) cost.gold = Math.floor(res.baseCost.gold * mult);
+    if (res.baseCost.wood) cost.wood = Math.floor(res.baseCost.wood * mult);
+    if (res.baseCost.stone) cost.stone = Math.floor(res.baseCost.stone * mult);
+    return cost;
   }
 
   function advanceResearch(seconds) {
     if (!game.activeResearches || game.activeResearches.length === 0) return;
+    let toRemove = [];
     game.activeResearches.forEach(resId => {
-      if (game.researches[resId] !== true) {
-        if (!game.researches[resId]) game.researches[resId] = 0;
-        game.researches[resId] += seconds;
-        let target = RESEARCH_DATA.find(r => r.id === resId).time;
-        if (game.researches[resId] >= target) {
-          game.researches[resId] = true;
-          game.activeResearches = game.activeResearches.filter(id => id !== resId);
-        }
+      if (!game.researchProgress[resId]) game.researchProgress[resId] = 0;
+      game.researchProgress[resId] += seconds;
+      let res = RESEARCH_DATA.find(r => r.id === resId);
+      let curLv = game.researches[resId] || 0;
+      let targetTime = Math.floor(res.baseTime * Math.pow(1.3, curLv));
+
+      if (game.researchProgress[resId] >= targetTime) {
+        game.researches[resId] = curLv + 1;
+        delete game.researchProgress[resId];
+        toRemove.push(resId);
       }
     });
+    game.activeResearches = game.activeResearches.filter(id => !toRemove.includes(id));
     renderResearch();
+    renderHeroStatus();
   }
 
   function startResearch(id) {
-    let maxSlots = 1;
-    if (game.researches['res_slot1'] === true) maxSlots++;
-    if (game.activeResearches.length >= maxSlots) {
-      alert('研究スロットが埋まっています！');
-      return;
-    }
-    let resDef = RESEARCH_DATA.find(r => r.id === id);
-    if (resDef.cost.gold && game.gold < resDef.cost.gold) return;
-    if (resDef.cost.stone && game.stone < resDef.cost.stone) return;
+    let maxSlots = 1 + (game.researches['res_slot'] || 0);
+    if (game.activeResearches.length >= maxSlots) { alert('研究枠がいっぱいです'); return; }
+    let cost = getResearchCost(id);
+    if (canAfford(cost)) {
+      payCost(cost);
+      game.researchProgress[id] = 0;
+      game.activeResearches.push(id);
+      renderResearch();
+      updateResourcesUI();
+    } else { alert('資源が足りません'); }
+  }
 
-    if (resDef.cost.gold) game.gold -= resDef.cost.gold;
-    if (resDef.cost.stone) game.stone -= resDef.cost.stone;
+  function buySkill(skillId) {
+    let s = SKILL_DATA.find(x => x.id === skillId);
+    let curLv = game.skills[skillId] || 0;
+    let cost = { gold: Math.floor(s.baseCost * Math.pow(1.6, curLv)) };
+    if (canAfford(cost)) {
+      payCost(cost);
+      game.skills[skillId] = curLv + 1;
+      renderSkillShop();
+      updateResourcesUI();
+    } else alert('ゴールドが足りません');
+  }
 
-    game.researches[id] = 1;
-    game.activeResearches.push(id);
-    renderResearch();
-    updateResourcesUI();
+  function buyAutoUpgrade(id) {
+    let u = AUTO_UPGRADES.find(x => x.id === id);
+    if (canAfford(u.cost)) {
+      payCost(u.cost);
+      game[id] = true;
+      renderAutoUpgrades();
+      updateResourcesUI();
+    } else alert('資源が足りません');
   }
 
   function pullGacha() {
-    if (game.soul < 100) {
-      alert('ソウルが足りません！ (必要: 100)');
-      return;
-    }
-    game.soul -= 100;
-    let template = GACHA_POOL[Math.floor(Math.random() * GACHA_POOL.length)];
-    let newChar = { id: 'char_' + Date.now(), name: template.name, atk: template.atk, owned: true };
-    game.characters.push(newChar);
+    if (game.soul < 50) { alert('ソウルが足りません (50必要)'); return; }
+    game.soul -= 50;
+    let t = GACHA_POOL[Math.floor(Math.random() * GACHA_POOL.length)];
+    game.characters.push({ name: t.name, atk: t.atk });
     renderGacha();
     updateResourcesUI();
-    updateBattleUI();
+    renderHeroStatus();
+  }
+
+  function checkAchievements() {
+    ACHIEVEMENTS_DATA.forEach(a => {
+      if (!game.achievements[a.id] && a.check()) {
+        game.achievements[a.id] = true;
+        if (a.id === 'ach_gold1k') game.soul += 50;
+        renderAchievements();
+      }
+    });
   }
 
   function reincarnate() {
-    let gainedPt = Math.floor(game.gold / 1000) + 5;
-    if (confirm(`転生しますか？\n・獲得予定Pt: ${gainedPt} Pt\n※進行度はリセットされます。`)) {
-      game.reincarnatePoints += gainedPt;
-      game.gold = 0;
-      game.wood = 0;
-      game.stone = 0;
-      game.stage = 1;
-      game.enemyMaxHp = 10;
-      game.enemyHp = 10;
-      game.townLevel = 3;
-      game.buildings = {};
-      game.researches = {};
-      game.activeResearches = [];
+    let pt = Math.floor(game.gold / 1000) + 5;
+    if (confirm(`転生しますか？ (獲得予定: ${pt} Pt)`)) {
+      game.reincarnatePoints += pt;
+      game.gold = 0; game.wood = 0; game.stone = 0;
+      game.heroLv = 1; game.heroXp = 0; game.statPt = 0;
+      game.stage = 1; game.enemyMaxHp = 10; game.enemyHp = 10;
+      game.townLevel = 3; game.buildings = {};
+      game.researches = {}; game.activeResearches = []; game.researchProgress = {};
+      game.skills = { autoAttack: 0, fireball: 0 };
+      game.curHp = getHeroMaxHp();
       renderAll();
-      alert('転生が完了しました！');
+      alert('転生しました');
     }
   }
 
-  // 100msごとにループ実行
+  function canAfford(cost) {
+    if (cost.gold && game.gold < cost.gold) return false;
+    if (cost.wood && game.wood < cost.wood) return false;
+    if (cost.stone && game.stone < cost.stone) return false;
+    return true;
+  }
+
+  function payCost(cost) {
+    if (cost.gold) game.gold -= cost.gold;
+    if (cost.wood) game.wood -= cost.wood;
+    if (cost.stone) game.stone -= cost.stone;
+  }
+
+  // --- メインタイマーループ (100ms) ---
+  let autoSkillTimer = 0;
+  let enemyAttackTimer = 0;
+
   setInterval(() => {
-    // 1. 資源の自動生成（1/10秒ぶん）
+    // 1. 資源自動受給
     let goldGen = 0, woodGen = 0, stoneGen = 0;
     for (let pos in game.buildings) {
       let b = game.buildings[pos];
@@ -497,54 +734,71 @@
     game.wood += woodGen / 10;
     game.stone += stoneGen / 10;
 
-    // 2. ★時間経過による研究進行（100ms = 0.1秒ずつ進行）
+    // 2. 時間経過研究進行
     advanceResearch(0.1);
+
+    // 3. 自動攻撃スキル
+    autoSkillTimer += 0.1;
+    if (game.skills.autoAttack > 0 && autoSkillTimer >= 1.0) {
+      attackEnemy();
+      autoSkillTimer = 0;
+    }
+    if (game.skills.fireball > 0 && autoSkillTimer >= 2.0) {
+      game.enemyHp -= getHeroAtk() * 2 * game.skills.fireball;
+      if (game.enemyHp <= 0) defeatEnemy();
+      updateBattleUI();
+    }
+
+    // 4. 敵からの反撃 (1.5秒毎)
+    enemyAttackTimer += 0.1;
+    if (enemyAttackTimer >= 1.5) {
+      enemyAttack();
+      enemyAttackTimer = 0;
+    }
+
+    // 5. 自動建築処理
+    if (game.autoBuild) {
+      for (let slot in game.buildings) {
+        let b = game.buildings[slot];
+        let cost = getBuildingCost(b.type, b.level + 1);
+        if (canAfford(cost)) upgradeBuilding(slot);
+      }
+    }
+
+    // 6. 自動研究処理
+    if (game.autoResearch) {
+      let maxSlots = 1 + (game.researches['res_slot'] || 0);
+      if (game.activeResearches.length < maxSlots) {
+        RESEARCH_DATA.forEach(r => {
+          let cost = getResearchCost(r.id);
+          if (canAfford(cost) && !game.activeResearches.includes(r.id)) {
+            startResearch(r.id);
+          }
+        });
+      }
+    }
 
     updateResourcesUI();
   }, 100);
 
-  function saveGame() {
-    game.lastSaveTime = Date.now();
-    localStorage.setItem('dungeonTownSave', JSON.stringify(game));
-    alert('セーブしました！');
-  }
+  // --- UI描画処理 ---
+  function renderHeroStatus() {
+    document.getElementById('hero-lv').innerText = game.heroLv;
+    document.getElementById('hero-stat-pt').innerText = game.statPt;
+    let maxHp = getHeroMaxHp();
+    if (game.curHp > maxHp) game.curHp = maxHp;
+    document.getElementById('hero-hp').innerText = Math.max(0, Math.floor(game.curHp));
+    document.getElementById('hero-max-hp').innerText = maxHp;
+    document.getElementById('hero-hp-fill').style.width = Math.max(0, (game.curHp / maxHp) * 100) + '%';
 
-  function loadGame() {
-    let saved = localStorage.getItem('dungeonTownSave');
-    if (saved) {
-      try { game = Object.assign(game, JSON.parse(saved)); } catch(e){}
-    }
-  }
+    let nextXp = game.heroLv * 10;
+    document.getElementById('hero-xp').innerText = game.heroXp;
+    document.getElementById('hero-next-xp').innerText = nextXp;
+    document.getElementById('hero-xp-fill').style.width = (game.heroXp / nextXp * 100) + '%';
 
-  function calculateOfflineProgress() {
-    let now = Date.now();
-    let diffSeconds = Math.floor((now - game.lastSaveTime) / 1000);
-    let maxOffline = 3600 + (game.upgrades.offlineMaxTime || 0) * 3600;
-    if (diffSeconds > maxOffline) diffSeconds = maxOffline;
-    if (diffSeconds > 10) {
-      // 放置中の生産資材加算
-      let goldGen = 0, woodGen = 0, stoneGen = 0;
-      for (let pos in game.buildings) {
-        let b = game.buildings[pos];
-        let def = BUILDING_TYPES[b.type];
-        if (def.goldGen) goldGen += def.goldGen * b.level;
-        if (def.woodGen) woodGen += def.woodGen * b.level;
-        if (def.stoneGen) stoneGen += def.stoneGen * b.level;
-      }
-      game.gold += goldGen * diffSeconds;
-      game.wood += woodGen * diffSeconds;
-      game.stone += stoneGen * diffSeconds;
-
-      // ★放置中の時間経過による研究進行
-      advanceResearch(diffSeconds);
-    }
-  }
-
-  function resetGame() {
-    if (confirm('データを完全に消去しますか？')) {
-      localStorage.removeItem('dungeonTownSave');
-      location.reload();
-    }
+    document.getElementById('stat-atk').innerText = getHeroAtk();
+    document.getElementById('stat-def').innerText = game.baseDef;
+    document.getElementById('stat-maxhp').innerText = maxHp;
   }
 
   function updateResourcesUI() {
@@ -557,19 +811,18 @@
 
   function updateBattleUI() {
     document.getElementById('stage-info').innerText = `ステージ ${game.stage}`;
-    document.getElementById('enemy-hp').innerText = game.enemyHp;
+    document.getElementById('enemy-hp').innerText = Math.max(0, Math.floor(game.enemyHp));
     document.getElementById('enemy-max-hp').innerText = game.enemyMaxHp;
+    document.getElementById('enemy-atk').innerText = game.enemyAtk;
     let percent = Math.max(0, (game.enemyHp / game.enemyMaxHp) * 100);
     document.getElementById('enemy-hp-fill').style.width = percent + '%';
-    document.getElementById('battle-atk').innerText = getPartyAtk();
-    document.getElementById('stat-shikantime').innerText = 1 + (game.upgrades.shikaiSpeed || 0);
   }
 
   function renderTown() {
     document.getElementById('town-size').innerText = game.townLevel;
     document.getElementById('town-size-2').innerText = game.townLevel;
     document.getElementById('land-cost').innerText = game.townLevel * 300;
-    
+
     let gridContainer = document.getElementById('town-grid');
     gridContainer.innerHTML = '';
     gridContainer.style.gridTemplateColumns = `repeat(${game.townLevel}, 1fr)`;
@@ -583,69 +836,93 @@
         slotEl.classList.add('built');
         let def = BUILDING_TYPES[b.type];
         let nextCost = getBuildingCost(b.type, b.level + 1);
-        let curOutput = (def.goldGen || def.woodGen || def.stoneGen || 1) * b.level;
-        
+        let curGen = (def.goldGen || def.woodGen || def.stoneGen || 1) * b.level;
+        let nextGen = (def.goldGen || def.woodGen || def.stoneGen || 1) * (b.level + 1);
+
         slotEl.innerHTML = `
-          <div><strong>${def.name}</strong> <span style="font-size:0.75rem; color:var(--gold);">Lv.${b.level}</span></div>
-          <div style="font-size:0.7rem; color:var(--text-sub);">効果: +${curOutput} ${def.unit}</div>
+          <div><b>${def.name}</b> <span style="color:var(--gold)">Lv.${b.level}</span></div>
+          <div style="font-size:0.7rem; color:var(--text-sub);">効果: +${curGen}➔+${nextGen} ${def.unit}</div>
           <button onclick="upgradeBuilding(${i})" style="margin-top:4px;">LvUP (${formatCostText(nextCost)})</button>
         `;
       } else {
         slotEl.innerHTML = `<span style="font-size:0.8rem; color:var(--text-sub);">＋ 建設</span>`;
-        slotEl.onclick = () => openBuildMenu(i);
+        slotEl.onclick = () => openBuildModal(i);
       }
       gridContainer.appendChild(slotEl);
-    }
-  }
-
-  function openBuildMenu(slotIndex) {
-    let typeKey = prompt('建設する建物を選択してください:\n- gold_mine (金鉱: 50G)\n- lumber_mill (伐採所: 100G)\n- quarry (採掘所: 200G 50木)\n- lab (研究所: 500G 100鉱)', 'gold_mine');
-    if (BUILDING_TYPES[typeKey]) {
-      let cost = getBuildingCost(typeKey, 1);
-      if ((!cost.gold || game.gold >= cost.gold) &&
-          (!cost.wood || game.wood >= cost.wood) &&
-          (!cost.stone || game.stone >= cost.stone)) {
-        if (cost.gold) game.gold -= cost.gold;
-        if (cost.wood) game.wood -= cost.wood;
-        if (cost.stone) game.stone -= cost.stone;
-
-        game.buildings[slotIndex] = { type: typeKey, level: 1 };
-        renderTown();
-        updateResourcesUI();
-      } else {
-        alert('資源が足りません！');
-      }
     }
   }
 
   function renderResearch() {
     let container = document.getElementById('research-list');
     container.innerHTML = '';
-    let maxSlots = 1 + (game.researches['res_slot1'] === true ? 1 : 0);
+    let maxSlots = 1 + (game.researches['res_slot'] || 0);
     document.getElementById('research-slots').innerText = game.activeResearches.length;
     document.getElementById('research-max-slots').innerText = maxSlots;
 
     RESEARCH_DATA.forEach(res => {
-      let status = game.researches[res.id];
-      let costText = formatCostText(res.cost);
-      let html = `<div class="list-item"><div><strong>${res.name}</strong> <span style="color:var(--gold);">(${res.desc})</span><br><span style="font-size:0.75rem; color:var(--text-sub);">コスト: ${costText} | 時間: ${res.time}秒</span></div>`;
-      if (status === true) {
-        html += `<span style="color:#2ecc71; font-weight:bold;">完了済</span>`;
-      } else if (status > 0) {
-        html += `<span>進行中 (${Math.floor(status)}/${res.time}s)</span>`;
-      } else {
-        html += `<button onclick="startResearch('${res.id}')">研究開始</button>`;
-      }
+      if (res.unlockReq && !game.achievements[res.unlockReq]) return;
+      let curLv = game.researches[res.id] || 0;
+      let costText = formatCostText(getResearchCost(res.id));
+      let isWorking = game.activeResearches.includes(res.id);
+      let progress = Math.floor(game.researchProgress[res.id] || 0);
+      let targetTime = Math.floor(res.baseTime * Math.pow(1.3, curLv));
+
+      let html = `<div class="list-item"><div><b>${res.name}</b> <span style="color:var(--gold);">Lv.${curLv}</span> (${res.effectText})<br><small>コスト: ${costText} | 時間: ${targetTime}s</small></div>`;
+      if (isWorking) html += `<span>進行中 (${progress}/${targetTime}s)</span>`;
+      else html += `<button onclick="startResearch('${res.id}')">研究開始</button>`;
       html += `</div>`;
       container.innerHTML += html;
     });
   }
 
+  function renderSkillShop() {
+    let container = document.getElementById('skill-shop-list');
+    container.innerHTML = '';
+    SKILL_DATA.forEach(s => {
+      let curLv = game.skills[s.id] || 0;
+      let cost = Math.floor(s.baseCost * Math.pow(1.6, curLv));
+      container.innerHTML += `
+        <div class="list-item">
+          <div><b>${s.name}</b> (Lv.${curLv})<br><small>${s.desc}</small></div>
+          <button onclick="buySkill('${s.id}')">強化 (${cost}G)</button>
+        </div>
+      `;
+    });
+  }
+
+  function renderAutoUpgrades() {
+    let container = document.getElementById('auto-upgrade-list');
+    container.innerHTML = '';
+    AUTO_UPGRADES.forEach(u => {
+      let isBought = game[u.id];
+      container.innerHTML += `
+        <div class="list-item">
+          <div><b>${u.name}</b><br><small>${u.desc}</small></div>
+          ${isBought ? '<b style="color:#2ecc71;">解放済</b>' : `<button onclick="buyAutoUpgrade('${u.id}')">解放 (${formatCostText(u.cost)})</button>`}
+        </div>
+      `;
+    });
+  }
+
+  function renderAchievements() {
+    let container = document.getElementById('achievement-list');
+    container.innerHTML = '';
+    ACHIEVEMENTS_DATA.forEach(a => {
+      let isDone = game.achievements[a.id];
+      container.innerHTML += `
+        <div class="list-item">
+          <div><b>${a.name}</b> - ${a.desc}<br><small>報酬: ${a.reward}</small></div>
+          ${isDone ? '<b style="color:#2ecc71;">達成</b>' : '<span style="color:#888;">未達成</span>'}
+        </div>
+      `;
+    });
+  }
+
   function renderGacha() {
-    let listEl = document.getElementById('owned-char-list');
-    listEl.innerHTML = '';
+    let list = document.getElementById('owned-char-list');
+    list.innerHTML = '';
     game.characters.forEach(c => {
-      listEl.innerHTML += `<div class="list-item"><div><strong>${c.name}</strong></div><div>攻撃力: +${c.atk}</div></div>`;
+      list.innerHTML += `<div class="list-item"><b>${c.name}</b> <span>攻撃力 +${c.atk}</span></div>`;
     });
   }
 
@@ -653,13 +930,10 @@
     let container = document.getElementById('reincarnate-upgrades');
     container.innerHTML = `<div style="margin-bottom:8px;">所持転生Pt: <b>${game.reincarnatePoints}</b> Pt</div>`;
     REINCARNATE_UPGRADES.forEach(up => {
-      let currentVal = game.upgrades[up.id] || 0;
+      let curLv = game.upgrades[up.id] || 0;
       container.innerHTML += `
         <div class="list-item">
-          <div>
-            <strong>${up.name}</strong> (Lv.${currentVal}/${up.max})<br>
-            <span style="font-size:0.75rem; color:var(--text-sub);">${up.desc}</span>
-          </div>
+          <div><b>${up.name}</b> (Lv.${curLv}/${up.max})<br><small>${up.desc}</small></div>
           <button onclick="buyReincarnateUpgrade('${up.id}', ${up.cost})">強化 (${up.cost} Pt)</button>
         </div>
       `;
@@ -667,29 +941,68 @@
   }
 
   function buyReincarnateUpgrade(id, cost) {
-    let upDef = REINCARNATE_UPGRADES.find(u => u.id === id);
+    let u = REINCARNATE_UPGRADES.find(x => x.id === id);
     let curLv = game.upgrades[id] || 0;
-    if (curLv >= upDef.max) {
-      alert('すでにレベルMAXです！');
-      return;
-    }
+    if (curLv >= u.max) return alert('レベルMAXです');
     if (game.reincarnatePoints >= cost) {
       game.reincarnatePoints -= cost;
       game.upgrades[id] = curLv + 1;
       renderReincarnate();
-      updateBattleUI();
-    } else {
-      alert('転生Ptが足りません！');
-    }
+    } else alert('転生Ptが足りません');
   }
 
   function renderAll() {
+    renderHeroStatus();
     updateResourcesUI();
     updateBattleUI();
     renderTown();
     renderResearch();
+    renderSkillShop();
+    renderAutoUpgrades();
+    renderAchievements();
     renderGacha();
     renderReincarnate();
+  }
+
+  function saveGameData(silent) {
+    game.lastSaveTime = Date.now();
+    localStorage.setItem('dungeonTownFullSave', JSON.stringify(game));
+    if (silent) alert('セーブ完了！');
+  }
+
+  function loadGameData() {
+    let saved = localStorage.getItem('dungeonTownFullSave');
+    if (saved) {
+      try { game = Object.assign(game, JSON.parse(saved)); } catch(e){}
+    }
+  }
+
+  function calculateOfflineProgress() {
+    let now = Date.now();
+    let diff = Math.floor((now - game.lastSaveTime) / 1000);
+    let maxOffline = 3600 + (game.upgrades.offlineMaxTime || 0) * 3600;
+    if (diff > maxOffline) diff = maxOffline;
+    if (diff > 10) {
+      let goldGen = 0, woodGen = 0, stoneGen = 0;
+      for (let pos in game.buildings) {
+        let b = game.buildings[pos];
+        let def = BUILDING_TYPES[b.type];
+        if (def.goldGen) goldGen += def.goldGen * b.level;
+        if (def.woodGen) woodGen += def.woodGen * b.level;
+        if (def.stoneGen) stoneGen += def.stoneGen * b.level;
+      }
+      game.gold += goldGen * diff;
+      game.wood += woodGen * diff;
+      game.stone += stoneGen * diff;
+      advanceResearch(diff);
+    }
+  }
+
+  function resetGame() {
+    if (confirm('データを全消去しますか？')) {
+      localStorage.removeItem('dungeonTownFullSave');
+      location.reload();
+    }
   }
 
   init();
